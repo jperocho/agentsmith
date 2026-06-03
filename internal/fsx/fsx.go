@@ -14,14 +14,16 @@ import (
 // sibling temp dir, then swaps it into place: any existing dst is removed and
 // the temp dir renamed over it, so a crash never leaves a half-written install.
 // The .git directory is excluded — installs ship skill content, not VCS data.
-func CopyTreeAtomic(src, dst string) error {
+// Returns the relative paths of any symlinks skipped during copy (copy mode
+// ships regular files only), so callers can warn that the install is partial.
+func CopyTreeAtomic(src, dst string) ([]string, error) {
 	parent := filepath.Dir(dst)
 	if err := os.MkdirAll(parent, 0o755); err != nil {
-		return fmt.Errorf("create parent %s: %w", parent, err)
+		return nil, fmt.Errorf("create parent %s: %w", parent, err)
 	}
 	tmp, err := os.MkdirTemp(parent, ".agentsmith-install-*")
 	if err != nil {
-		return fmt.Errorf("create temp install dir: %w", err)
+		return nil, fmt.Errorf("create temp install dir: %w", err)
 	}
 	cleanup := true
 	defer func() {
@@ -30,22 +32,49 @@ func CopyTreeAtomic(src, dst string) error {
 		}
 	}()
 
-	if err := copyTree(src, tmp); err != nil {
-		return err
+	skipped, err := copyTree(src, tmp)
+	if err != nil {
+		return nil, err
 	}
-	// Remove any prior install, then atomically rename the staged tree in.
-	if err := os.RemoveAll(dst); err != nil {
-		return fmt.Errorf("remove existing target %s: %w", dst, err)
-	}
-	if err := os.Rename(tmp, dst); err != nil {
-		return fmt.Errorf("swap install into %s: %w", dst, err)
+	if err := swapInto(tmp, dst); err != nil {
+		return nil, err
 	}
 	cleanup = false
+	return skipped, nil
+}
+
+// swapInto atomically replaces dst with the staged path tmp. Any existing dst is
+// moved aside to a sibling backup first; if the rename into place fails the
+// backup is restored, so a failed swap never destroys the prior install.
+func swapInto(tmp, dst string) error {
+	parent := filepath.Dir(dst)
+	var backup string
+	if _, err := os.Lstat(dst); err == nil {
+		b, err := os.MkdirTemp(parent, ".agentsmith-backup-*")
+		if err != nil {
+			return fmt.Errorf("stage backup of %s: %w", dst, err)
+		}
+		backup = filepath.Join(b, "old")
+		if err := os.Rename(dst, backup); err != nil {
+			os.RemoveAll(b)
+			return fmt.Errorf("move existing target %s aside: %w", dst, err)
+		}
+		defer os.RemoveAll(b)
+	} else if !os.IsNotExist(err) {
+		return fmt.Errorf("stat existing target %s: %w", dst, err)
+	}
+	if err := os.Rename(tmp, dst); err != nil {
+		if backup != "" {
+			os.Rename(backup, dst) // best-effort restore of prior install
+		}
+		return fmt.Errorf("swap install into %s: %w", dst, err)
+	}
 	return nil
 }
 
-func copyTree(src, dst string) error {
-	return filepath.Walk(src, func(p string, info os.FileInfo, err error) error {
+func copyTree(src, dst string) ([]string, error) {
+	var skipped []string
+	err := filepath.Walk(src, func(p string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -61,10 +90,12 @@ func copyTree(src, dst string) error {
 		}
 		if !info.Mode().IsRegular() {
 			// Skip symlinks/specials; ScanTree already vetted them as in-tree.
+			skipped = append(skipped, rel)
 			return nil
 		}
 		return copyFile(p, filepath.Join(dst, rel), info.Mode().Perm())
 	})
+	return skipped, err
 }
 
 func copyFile(src, dst string, perm os.FileMode) error {
@@ -104,16 +135,8 @@ func SymlinkAtomic(src, dst string) error {
 		os.RemoveAll(tmp)
 		return fmt.Errorf("create symlink: %w", err)
 	}
-	if err := os.RemoveAll(dst); err != nil {
-		os.RemoveAll(tmp)
-		return fmt.Errorf("remove existing target %s: %w", dst, err)
-	}
-	if err := os.Rename(linkTmp, dst); err != nil {
-		os.RemoveAll(tmp)
-		return fmt.Errorf("swap symlink into %s: %w", dst, err)
-	}
-	os.RemoveAll(tmp)
-	return nil
+	defer os.RemoveAll(tmp)
+	return swapInto(linkTmp, dst)
 }
 
 // StripExecBits clears the executable bits (0111) from every regular file in

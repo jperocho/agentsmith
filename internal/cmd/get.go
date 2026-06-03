@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/jperocho/agentsmith/internal/fsx"
 	"github.com/jperocho/agentsmith/internal/gitx"
@@ -45,6 +46,9 @@ func (a *App) Get(args []string) error {
 		defer os.RemoveAll(scratch)
 		clonePath := filepath.Join(scratch, spec.Name)
 
+		if strings.HasPrefix(spec.URL, "http://") {
+			fmt.Printf("warning: %s uses plaintext http:// — content is unauthenticated and MITM-able; prefer https://\n", spec.URL)
+		}
 		fmt.Printf("Cloning %s%s ...\n", spec.URL, refSuffix(spec.Ref))
 		if err := gitx.Clone(spec.URL, spec.Ref, clonePath); err != nil {
 			return false, err

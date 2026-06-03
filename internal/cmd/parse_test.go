@@ -32,7 +32,12 @@ func TestParseRepo(t *testing.T) {
 }
 
 func TestParseRepoRejects(t *testing.T) {
-	bad := []string{"", "not a url", "ftp://x/y", "../escape"}
+	bad := []string{
+		"", "not a url", "ftp://x/y", "../escape",
+		// Path-traversal names: deriveName must reject these so SkillPath(name)
+		// cannot resolve to the skills dir / hub root and get its tree wiped.
+		"https://h/o/.", "https://h/o/..", "https://h/o/../..",
+	}
 	for _, in := range bad {
 		if _, err := parseRepo(in); err == nil {
 			t.Errorf("parseRepo(%q) = nil error, want rejection", in)
@@ -43,5 +48,13 @@ func TestParseRepoRejects(t *testing.T) {
 func TestDeriveNameRejectsBadChars(t *testing.T) {
 	if n := deriveName("https://h/o/bad name"); n != "" {
 		t.Errorf("deriveName allowed bad chars: %q", n)
+	}
+}
+
+func TestDeriveNameRejectsTraversal(t *testing.T) {
+	for _, in := range []string{"https://h/o/.", "https://h/o/..", "git@h:o/.."} {
+		if n := deriveName(in); n != "" {
+			t.Errorf("deriveName(%q) = %q, want \"\" (path-traversal name)", in, n)
+		}
 	}
 }

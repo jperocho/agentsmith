@@ -176,5 +176,11 @@ func deriveName(url string) string {
 	if !regexp.MustCompile(`^[\w.-]+$`).MatchString(last) {
 		return ""
 	}
+	// Reject path-traversal names ("." / ".."): SkillPath(name) would resolve to
+	// the skills dir or its parent, and the get/install RemoveAll(dest) step would
+	// then wipe the whole skills tree (or hub). [\w.-]+ alone does not exclude these.
+	if last == "." || last == ".." {
+		return ""
+	}
 	return last
 }

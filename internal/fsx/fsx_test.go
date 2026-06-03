@@ -37,7 +37,7 @@ func TestCopyTreeAtomic(t *testing.T) {
 	os.WriteFile(filepath.Join(src, ".git", "HEAD"), []byte("ref"), 0o644)
 
 	dst := filepath.Join(t.TempDir(), "out")
-	if err := CopyTreeAtomic(src, dst); err != nil {
+	if _, err := CopyTreeAtomic(src, dst); err != nil {
 		t.Fatal(err)
 	}
 	if b, _ := os.ReadFile(filepath.Join(dst, "sub", "x.txt")); string(b) != "deep" {
@@ -55,7 +55,7 @@ func TestCopyTreeAtomicReplaces(t *testing.T) {
 	os.MkdirAll(dst, 0o755)
 	os.WriteFile(filepath.Join(dst, "stale.txt"), []byte("old"), 0o644)
 
-	if err := CopyTreeAtomic(src, dst); err != nil {
+	if _, err := CopyTreeAtomic(src, dst); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(filepath.Join(dst, "stale.txt")); !os.IsNotExist(err) {
@@ -63,6 +63,28 @@ func TestCopyTreeAtomicReplaces(t *testing.T) {
 	}
 	if b, _ := os.ReadFile(filepath.Join(dst, "v.txt")); string(b) != "new" {
 		t.Errorf("new content missing")
+	}
+}
+
+func TestCopyTreeAtomicSkipsSymlinks(t *testing.T) {
+	src := t.TempDir()
+	os.WriteFile(filepath.Join(src, "real.txt"), []byte("hi"), 0o644)
+	if err := os.Symlink("real.txt", filepath.Join(src, "link.txt")); err != nil {
+		t.Skipf("symlink unsupported: %v", err)
+	}
+	dst := filepath.Join(t.TempDir(), "out")
+	skipped, err := CopyTreeAtomic(src, dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(skipped) != 1 || skipped[0] != "link.txt" {
+		t.Errorf("skipped = %v, want [link.txt]", skipped)
+	}
+	if _, err := os.Lstat(filepath.Join(dst, "link.txt")); !os.IsNotExist(err) {
+		t.Errorf("symlink should not be copied into install")
+	}
+	if b, _ := os.ReadFile(filepath.Join(dst, "real.txt")); string(b) != "hi" {
+		t.Errorf("regular file not copied")
 	}
 }
 

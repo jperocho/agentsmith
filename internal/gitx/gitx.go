@@ -96,9 +96,9 @@ func Fetch(repoDir, ref string) error {
 	return err
 }
 
-// RemoteCommit returns the commit SHA that origin/ref currently points at,
-// after a Fetch. ref may be a branch or tag name.
-func RemoteCommit(repoDir, ref string) (string, error) {
+// RemoteCommit returns the commit SHA fetched by the preceding Fetch call, i.e.
+// the tip of the ref that Fetch resolved into FETCH_HEAD. Call only after Fetch.
+func RemoteCommit(repoDir string) (string, error) {
 	return run(repoDir, "rev-parse", "FETCH_HEAD")
 }
 

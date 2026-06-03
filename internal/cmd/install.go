@@ -43,6 +43,9 @@ func (a *App) Install(args []string) error {
 		return fmt.Errorf("usage: agentsmith install <skill> [--global] [--mode copy|symlink] [--agent name]...")
 	}
 	name := rest[0]
+	if name == "." || name == ".." || strings.ContainsAny(name, "/\\") {
+		return fmt.Errorf("invalid skill name %q", name)
+	}
 
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -100,8 +103,12 @@ func (a *App) Install(args []string) error {
 				if err := security.ScanTree(srcDir); err != nil {
 					return changed, err
 				}
-				if err := fsx.CopyTreeAtomic(srcDir, resolved); err != nil {
+				skipped, err := fsx.CopyTreeAtomic(srcDir, resolved)
+				if err != nil {
 					return changed, err
+				}
+				if len(skipped) > 0 {
+					fmt.Printf("note: skipped %d symlink(s) in copy mode — install is partial; use --mode symlink to preserve them\n", len(skipped))
 				}
 			}
 

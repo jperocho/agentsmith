@@ -49,7 +49,7 @@ func (a *App) Update(args []string) error {
 		if err := gitx.Fetch(repoDir, fetchRef); err != nil {
 			return false, err
 		}
-		newCommit, err := gitx.RemoteCommit(repoDir, fetchRef)
+		newCommit, err := gitx.RemoteCommit(repoDir)
 		if err != nil {
 			return false, err
 		}
@@ -124,8 +124,12 @@ func (a *App) Update(args []string) error {
 				return true, nil
 			}
 			for _, in := range stale {
-				if err := fsx.CopyTreeAtomic(repoDir, in.Target); err != nil {
+				skipped, err := fsx.CopyTreeAtomic(repoDir, in.Target)
+				if err != nil {
 					return true, fmt.Errorf("re-sync %s install at %s: %w", in.Agent, in.Target, err)
+				}
+				if len(skipped) > 0 {
+					fmt.Printf("note: skipped %d symlink(s) in copy mode for %s install\n", len(skipped), in.Agent)
 				}
 				in.InstalledCommit = newCommit
 				in.InstalledAt = manifest.Now()
