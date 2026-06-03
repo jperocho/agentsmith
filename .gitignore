@@ -1,0 +1,14 @@
+# Built binary
+/agentsmith
+/dist/
+
+# Go
+*.test
+*.out
+coverage.*
+
+# Editor / OS
+.DS_Store
+*.swp
+.idea/
+.vscode/
