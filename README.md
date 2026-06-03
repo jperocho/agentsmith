@@ -1,6 +1,7 @@
 # agentsmith
 
 [![CI](https://github.com/jperocho/agentsmith/actions/workflows/ci.yml/badge.svg)](https://github.com/jperocho/agentsmith/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/jperocho/agentsmith?sort=semver)](https://github.com/jperocho/agentsmith/releases/latest)
 
 A local **skills hub** for AI coding agents. Clone skill repos into one central
 place (`~/.agentsmith`), track the exact version of each, and install them into
@@ -44,10 +45,6 @@ Prebuilt archives + `checksums.txt` for Linux and macOS (amd64/arm64) are
 attached to each [release](https://github.com/jperocho/agentsmith/releases).
 Windows is not yet supported — the hub lock uses `flock(2)`; a Windows port is
 planned.
-
-> The curl installer and `go install @latest` resolve the latest tagged
-> release, so they work only once `v0.1.0` (or later) is published. Until then,
-> build from source.
 
 ## Usage
 
@@ -133,7 +130,8 @@ agentsmith treats all skill content as untrusted. Implemented:
 - Hub dir is `0700`, `skills.json` is `0600`.
 - agentsmith **never executes** skill-provided scripts during get/update/install.
 
-Deferred: signed-tag verification, deep per-file content scanning.
+Deferred: signed-tag verification, deep per-file content scanning, signed
+release checksums.
 
 ## Agents
 
@@ -143,6 +141,8 @@ using the common `~/.<agent>/skills/<skill>/` (global) and
 verified** against each agent's real layout — confirm with
 `agentsmith install <skill> --agent <name> --dry-run` before relying on them.
 
-## Not yet built
+## Roadmap
 
-- `install.sh` + release artifacts/checksums (`curl | sh`).
+- Verified Cursor / Codex / Hermes adapter paths.
+- Windows support (a `LockFileEx`-based hub lock).
+- Signed release checksums and signed-tag verification.
