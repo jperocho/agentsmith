@@ -12,3 +12,6 @@ coverage.*
 *.swp
 .idea/
 .vscode/
+
+# Local env (direnv) — may hold tokens
+.envrc
