@@ -14,10 +14,11 @@ builds:
     binary: agentsmith
     env:
       - CGO_ENABLED=0
+    # Unix only: the hub lock uses flock(2) (see internal/lock). Windows needs a
+    # LockFileEx-based implementation — tracked as a follow-up.
     goos:
       - linux
       - darwin
-      - windows
     goarch:
       - amd64
       - arm64
@@ -34,10 +35,6 @@ archives:
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     formats:
       - tar.gz
-    format_overrides:
-      - goos: windows
-        formats:
-          - zip
 
 checksum:
   name_template: checksums.txt

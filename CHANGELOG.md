@@ -44,4 +44,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Release
 - CI workflow (`go build` / `vet` / `test -race`) and a GoReleaser-driven
   release pipeline producing a `checksums.txt` and per-platform archives on `v*`
-  tags, plus a `curl | sh` installer with checksum verification.
+  tags, plus a `curl | sh` installer with checksum verification. Release targets
+  Linux and macOS (amd64/arm64); Windows is not yet supported (the hub lock uses
+  `flock(2)`).

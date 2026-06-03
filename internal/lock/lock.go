@@ -1,5 +1,10 @@
+//go:build unix
+
 // Package lock provides a cross-process advisory file lock guarding concurrent
 // agentsmith runs against a single hub (plan 4: ~/.agentsmith/.lock).
+//
+// Unix only: implemented with flock(2). Windows would need a LockFileEx-based
+// variant (tracked as a follow-up); the release matrix builds linux/darwin.
 package lock
 
 import (
