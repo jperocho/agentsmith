@@ -16,14 +16,36 @@ content scan, checksums, target allowlisting).
 Single static Go binary, no runtime dependencies (needs `git` on PATH at run
 time for `get`/`update`).
 
+### curl (recommended)
+
+Downloads the release binary for your OS/arch and verifies its sha256 checksum:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/jperocho/agentsmith/main/install.sh | sh
+```
+
+Overrides: `AGENTSMITH_VERSION=v0.1.0` to pin a tag, `AGENTSMITH_BIN_DIR=~/bin`
+to choose the install dir (defaults to `/usr/local/bin`, else `~/.local/bin`).
+
+### go install
+
+```sh
+go install github.com/jperocho/agentsmith@latest
+```
+
+### From source
+
 ```sh
 go build -o agentsmith .
-# put it on your PATH, e.g.
 install -m 0755 agentsmith ~/.local/bin/agentsmith
 ```
 
-> The `curl | sh` installer and release pipeline are not built yet — they need
-> the published GitHub repo + tagged release first.
+Prebuilt archives + `checksums.txt` for linux/macOS/Windows (amd64/arm64) are
+attached to each [release](https://github.com/jperocho/agentsmith/releases).
+
+> The curl installer and `go install @latest` resolve the latest tagged
+> release, so they work only once `v0.1.0` (or later) is published. Until then,
+> build from source.
 
 ## Usage
 
