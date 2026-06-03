@@ -62,7 +62,7 @@ echo "Downloading $asset ($tag) ..."
 dl "$base/$asset" "$tmp/$asset" || err "download failed: $base/$asset"
 dl "$base/checksums.txt" "$tmp/checksums.txt" || err "checksums.txt download failed"
 
-want=$(grep " $asset\$" "$tmp/checksums.txt" | awk '{print $1}')
+want=$(awk -v f="$asset" '$2==f {print $1}' "$tmp/checksums.txt")
 [ -n "$want" ] || err "no checksum entry for $asset"
 if have sha256sum; then
   got=$(sha256sum "$tmp/$asset" | awk '{print $1}')
@@ -78,7 +78,7 @@ chmod +x "$tmp/agentsmith"
 
 bindir="${AGENTSMITH_BIN_DIR:-}"
 if [ -z "$bindir" ]; then
-  if [ -w /usr/local/bin ] 2>/dev/null; then
+  if [ -d /usr/local/bin ] && [ -w /usr/local/bin ]; then
     bindir=/usr/local/bin
   else
     bindir="$HOME/.local/bin"

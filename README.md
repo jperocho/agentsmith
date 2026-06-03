@@ -43,6 +43,10 @@ install -m 0755 agentsmith ~/.local/bin/agentsmith
 Prebuilt archives + `checksums.txt` for linux/macOS/Windows (amd64/arm64) are
 attached to each [release](https://github.com/jperocho/agentsmith/releases).
 
+> The curl installer and `go install @latest` resolve the latest tagged
+> release, so they work only once `v0.1.0` (or later) is published. Until then,
+> build from source.
+
 ## Usage
 
 ```
