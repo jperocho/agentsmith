@@ -1,5 +1,7 @@
 # agentsmith
 
+[![CI](https://github.com/jperocho/agentsmith/actions/workflows/ci.yml/badge.svg)](https://github.com/jperocho/agentsmith/actions/workflows/ci.yml)
+
 A local **skills hub** for AI coding agents. Clone skill repos into one central
 place (`~/.agentsmith`), track the exact version of each, and install them into
 your agents (Claude Code today; Cursor / Codex / Hermes planned) by **copy** or
