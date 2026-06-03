@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-06-03
+
 ### Added
 - Hub core: `~/.agentsmith` bootstrap (0700/0600 perms), atomic `skills.json`
   manifest (temp → fsync → rename), and a cross-process file lock.
@@ -36,5 +38,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Tests
 - Unit coverage for repo parsing, security guards (allowlist, symlink escape,
-  checksum), manifest round-trip, filesystem install primitives, and the agent
-  registry.
+  checksum), manifest round-trip, filesystem install primitives, the agent
+  registry, the git wrapper, and the cross-process lock.
+
+### Release
+- CI workflow (`go build` / `vet` / `test -race`) and a GoReleaser-driven
+  release pipeline producing a `checksums.txt` and per-platform archives on `v*`
+  tags, plus a `curl | sh` installer with checksum verification.
