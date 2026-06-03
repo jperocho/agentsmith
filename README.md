@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/jperocho/agentsmith/actions/workflows/ci.yml/badge.svg)](https://github.com/jperocho/agentsmith/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/jperocho/agentsmith?sort=semver)](https://github.com/jperocho/agentsmith/releases/latest)
+[![Go Reference](https://pkg.go.dev/badge/github.com/jperocho/agentsmith.svg)](https://pkg.go.dev/github.com/jperocho/agentsmith)
+[![Go version](https://img.shields.io/github/go-mod/go-version/jperocho/agentsmith)](go.mod)
 
 A local **skills hub** for AI coding agents. Clone skill repos into one central
 place (`~/.agentsmith`), track the exact version of each, and install them into
